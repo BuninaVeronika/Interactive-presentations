@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Интерактивная презентация</title>
+   <script defer src="jquery-3.4.1.min.js" type="text/javascript"></script>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+        <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+        <link rel="stylesheet" type="text/css" href="css/demo.css" />
+        <link rel="stylesheet" type="text/css" href="css/component.css" />
+</head>
+<body>
+
+  <button onclick="speech ()" id='b1'>ЗАПУСТИТЬ</button>
+  <button onclick="stoping ()" id='b2'>&#10006;</button>
+
+  <script>
+
+  // Создаем распознаватель
+  var recognizer = new webkitSpeechRecognition();
+  
+  //Распознавание запущено или нет?
+  var isServiceStarted = false;
+
+  // Ставим опцию, чтобы распознавание началось ещё до того, как пользователь закончит говорить
+  recognizer.interimResults = true;
+
+  // Какой язык будем распознавать?
+  recognizer.lang = 'ru-Ru';
+
+  recognizer.onend = function(){
+		   isServiceStarted? recognizer.start() : null;
+      };
+
+  // Используем колбек для обработки результатов
+
+  recognizer.onresult = function (event) {
+    var result = event.results[event.resultIndex];
+	
+	
+    if (result.isFinal) {
+     var imgUrl = "";
+	 try {
+      //imgUrl = findImage("https://pixabay.com/api/?key=14415022-30a082fa41bb38c5d89b5390e&q=" + result[0].transcript.replace(/ /g, '+') +"&image_type=all&lang=ru&per_page=3&safesearch=true&order=popular");
+	  findBingImg(result[0].transcript);
+	  
+	  }
+	  catch(e)
+	  {
+	   
+	  }
+
+      $(".imgsrc").attr("src", imgUrl);
+
+      document.getElementById('mySpan').innerHTML = result[0].transcript;
+
+    } else {
+      
+      document.getElementById('mySpan').innerHTML = result[0].transcript;
+    }
+  };
+
+//deprecated
+  function findImage (pgurl)
+  {
+  	var response = "";
+   $.ajax({
+      url: pgurl
+    , dataType: 'json',
+    async: false,
+    success : function(text)
+         {
+             response = text;
+         }
+  });
+  return response.hits[2].webformatURL;
+  }
+
+function findBingImg(sentence)
+{
+//https://api.cognitive.microsoft.com/bing/v7.0/images/search
+
+try {
+$.ajax({
+  url: "https://api.cognitive.microsoft.com/bing/v7.0/images/search",
+  beforeSend: function(request) {
+    request.setRequestHeader("Ocp-Apim-Subscription-Key", "bb3fbed2c0064d2083a5455ee13f4ddc");
+  },
+  data: "q=" + sentence.replace(/ /g, '+') + "&count=1&safeSearch=Strict",
+  success: SendImg
+});
+}
+catch (e)
+{
+
+}
+
+
+}
+
+function SendImg(data)
+{
+  //$(".imgsrc").attr("src", data.value[0].contentUrl);
+  
+  $(".imgsrc").fadeTo(1000,0.30, function() {
+      $(".imgsrc").attr("src", data.value[0].contentUrl);
+  }).fadeTo(500,1);
+}
+
+
+   function speech () {
+
+    document.getElementById("b1").style.display = "none";
+    document.getElementById("b2").style.display = "block";
+	document.getElementsByClassName("imgblock")[0].style.display = "block";
+	
+	$(".main-title").fadeOut();
+
+	isServiceStarted = true;
+    // Начинаем слушать микрофон и распознавать голос
+    recognizer.start();
+
+  }
+
+   function stoping () {
+    // Перестаем слушать микрофон и распознавать голос
+	
+   isServiceStarted = false;
+   recognizer.stop();
+
+   $(".imgsrc").attr("src", "");
+   document.getElementById('mySpan').innerHTML = "";
+
+    document.getElementById("b2").style.display = "none";
+    document.getElementById("b1").style.display = "block";
+	document.getElementsByClassName("imgblock")[0].style.display = "none";
+	$(".main-title").fadeIn();
+
+
+  }
+  </script>
+  <div class="container demo-3">
+			<div class="content">
+                <div id="large-header" class="large-header">
+                    <canvas id="demo-canvas"></canvas>
+                    <h1 class="main-title">live Present</span></h1>
+                </div>
+				<div class="imgblock">
+	<img class="imgsrc" style="user-select: none;" src="">
+</div>
+            </div>
+                
+		</div>
+
+<div class='text' style="user-select: none;"> 
+<span id="mySpan">
+</span>
+</div>
+		    <script defer src="js/TweenLite.min.js"></script>
+        <script defer src="js/EasePack.min.js"></script>
+      <!--  <script defer src="js/rAF.js"></script>-->
+        <script defer src="js/demo-3.js"></script>
+</body>
+
+<script>
+document.getElementsByClassName("imgblock")[0].style.display = "none";
+</script>
+</html>
